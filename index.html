@@ -54,6 +54,14 @@
             margin: 0;
         }
 
+        .title-image {
+            width: 40px;
+            height: 40px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+            object-fit: cover;
+        }
+
         .settings-btn {
             position: absolute;
             right: 15px;
@@ -156,18 +164,18 @@
             align-self: center;
         }
 
-        /* サイコロの目のパターン */
+        /* サイコロの目のパターン - より正確なサイコロらしいレイアウト */
         .dice-1 .dot:nth-child(5) { display: block; }
         .dice-1 .dot:not(:nth-child(5)) { display: none; }
 
-        .dice-2 .dot:nth-child(3) { display: block; }
-        .dice-2 .dot:nth-child(7) { display: block; }
-        .dice-2 .dot:not(:nth-child(3)):not(:nth-child(7)) { display: none; }
+        .dice-2 .dot:nth-child(1) { display: block; }
+        .dice-2 .dot:nth-child(9) { display: block; }
+        .dice-2 .dot:not(:nth-child(1)):not(:nth-child(9)) { display: none; }
 
-        .dice-3 .dot:nth-child(3) { display: block; }
+        .dice-3 .dot:nth-child(1) { display: block; }
         .dice-3 .dot:nth-child(5) { display: block; }
-        .dice-3 .dot:nth-child(7) { display: block; }
-        .dice-3 .dot:not(:nth-child(3)):not(:nth-child(5)):not(:nth-child(7)) { display: none; }
+        .dice-3 .dot:nth-child(9) { display: block; }
+        .dice-3 .dot:not(:nth-child(1)):not(:nth-child(5)):not(:nth-child(9)) { display: none; }
 
         .dice-4 .dot:nth-child(1) { display: block; }
         .dice-4 .dot:nth-child(3) { display: block; }
@@ -187,7 +195,6 @@
         .dice-6 .dot:nth-child(6) { display: block; }
         .dice-6 .dot:nth-child(7) { display: block; }
         .dice-6 .dot:nth-child(9) { display: block; }
-        .dice-6 .dot:nth-child(5):not(.dice-6) { display: none; }
 
         .destination-content {
             flex: 1;
@@ -268,20 +275,26 @@
 
         .buttons-container {
             display: flex;
-            flex-direction: column;
+            flex-direction: row;
             gap: 10px;
             margin-bottom: 20px;
         }
 
-        .roll-button, .dice-time-button {
+        .roll-button, .destination-announcement-button {
             color: white;
             border: none;
-            padding: 15px 30px;
-            font-size: 1.1rem;
+            padding: 15px 20px;
+            font-size: 1rem;
             font-weight: bold;
             border-radius: 25px;
             cursor: pointer;
             transition: all 0.3s ease;
+            flex: 1;
+        }
+
+        .destination-announcement-button {
+            background: linear-gradient(135deg, #ff9800, #f57c00);
+            box-shadow: 0 4px 15px rgba(255, 152, 0, 0.3);
         }
 
         .roll-button {
@@ -289,16 +302,11 @@
             box-shadow: 0 4px 15px rgba(76, 175, 80, 0.3);
         }
 
-        .dice-time-button {
-            background: linear-gradient(135deg, #ff9800, #f57c00);
-            box-shadow: 0 4px 15px rgba(255, 152, 0, 0.3);
-        }
-
-        .roll-button:hover, .dice-time-button:hover {
+        .roll-button:hover, .destination-announcement-button:hover {
             transform: translateY(-2px);
         }
 
-        .roll-button:disabled, .dice-time-button:disabled {
+        .roll-button:disabled, .destination-announcement-button:disabled {
             background: #ccc;
             cursor: not-allowed;
             box-shadow: none;
@@ -495,6 +503,7 @@
         <div class="header-content">
             <div class="dice-icon">🎲</div>
             <h1>サイコロの旅</h1>
+            <img src="土.png" alt="土" class="title-image" onerror="this.style.display='none'">
         </div>
         <button class="settings-btn" id="settingsBtn">⚙️</button>
     </div>
@@ -512,8 +521,8 @@
                 <div class="dot"></div><div class="dot"></div><div class="dot"></div>
             </div>
             <div class="buttons-container">
+                <button class="destination-announcement-button" id="destinationAnnouncementButton">🎯 行先発表！</button>
                 <button class="roll-button" id="rollButton">サイコロを振る！</button>
-                <button class="dice-time-button" id="diceTimeButton">🎯 サイコロタイム！</button>
             </div>
         </div>
 
@@ -523,7 +532,7 @@
         </div>
 
         <div class="history" id="history" style="display: none;">
-            <h4>🗺️ 旅の記録</h4>
+            <h4>🗺️ 最近の旅の記録（履歴を見るには設定画面へ）</h4>
             <div id="historyList"></div>
         </div>
     </div>
@@ -542,32 +551,32 @@
             <div class="tab-content active" id="destinationsContent">
                 <div class="input-group">
                     <label class="input-label">🎲 1の目 - 行き先:</label>
-                    <input type="text" class="destination-input" id="dest1" placeholder="例: 電車バス【よこはま】横浜">
+                    <input type="text" class="destination-input" id="dest1" placeholder="例: 電車で行く【東横線】横浜">
                 </div>
                 
                 <div class="input-group">
                     <label class="input-label">🎲 2の目 - 行き先:</label>
-                    <input type="text" class="destination-input" id="dest2" placeholder="例: 電車バス【オラウータン】長崎">
+                    <input type="text" class="destination-input" id="dest2" placeholder="例: わりと近い【静鉄バス】静岡">
                 </div>
                 
                 <div class="input-group">
                     <label class="input-label">🎲 3の目 - 行き先:</label>
-                    <input type="text" class="destination-input" id="dest3" placeholder="例: 電車バス【むらやま】新潟">
+                    <input type="text" class="destination-input" id="dest3" placeholder="例: 行きたい【とき311号】新潟">
                 </div>
                 
                 <div class="input-group">
                     <label class="input-label">🎲 4の目 - 行き先:</label>
-                    <input type="text" class="destination-input" id="dest4" placeholder="例: 電車バス【ムーンライト】博多">
+                    <input type="text" class="destination-input" id="dest4" placeholder="例: 地獄の【はかた号】博多">
                 </div>
                 
                 <div class="input-group">
                     <label class="input-label">🎲 5の目 - 行き先:</label>
-                    <input type="text" class="destination-input" id="dest5" placeholder="例: ANAの便で東京">
+                    <input type="text" class="destination-input" id="dest5" placeholder="例: まさかの【大韓航空2104便】ソウル">
                 </div>
                 
                 <div class="input-group">
                     <label class="input-label">🎲 6の目 - 行き先:</label>
-                    <input type="text" class="destination-input" id="dest6" placeholder="例: 新幹線！！大阪→一泊">
+                    <input type="text" class="destination-input" id="dest6" placeholder="例: どうして【徒歩で行く】清澄白河">
                 </div>
             </div>
 
@@ -585,43 +594,20 @@
         </div>
     </div>
 
+    <script src="destinations.js"></script>
     <script>
         class SugorokuTravelGame {
             constructor() {
-                // 三軒茶屋から1,000円圏内の100か所のスポット
-                this.allDestinations = [
-                    '電車バス【さんちゃ】三軒茶屋', '電車バス【しぶや】渋谷', '電車バス【はらじゅく】原宿', '電車バス【おもて】表参道', '電車バス【よよぎ】代々木',
-                    '電車バス【しもきた】下北沢', '電車バス【きちじょうじ】吉祥寺', '電車バス【いのかしら】井の頭', '電車バス【くがやま】久我山', '電車バス【にしおぎ】西荻窪',
-                    '電車バス【じゆうが】自由が丘', '電車バス【でんちょう】田園調布', '電車バス【とどろき】等々力', '電車バス【くほんぶつ】九品仏', '電車バス【かみのげ】上野毛',
-                    '電車バス【ふたこ】二子玉川', '電車バス【せいじょう】成城学園', '電車バス【きたみ】喜多見', '電車バス【こまえ】狛江', '電車バス【ちょうふ】調布',
-                    '電車バス【きょうどう】経堂', '電車バス【ごうとくじ】豪徳寺', '電車バス【うめがおか】梅ヶ丘', '電車バス【だいたばし】代田橋', '電車バス【めいだい】明大前',
-                    '電車バス【いけのうえ】池ノ上', '電車バス【しんだいた】新代田', '電車バス【ひがしまつ】東松原', '電車バス【さくらじょう】桜上水', '電車バス【かみきた】上北沢',
-                    '電車バス【あしはな】芦花公園', '電車バス【ちとから】千歳烏山', '電車バス【せんがわ】仙川', '電車バス【つつじが】つつじヶ丘', '電車バス【しばさき】柴崎',
-                    '電車バス【こくりょう】国領', '電車バス【ふだてん】布田天神', '電車バス【けいおうたま】京王多摩川', '電車バス【きょうてい】多摩川競艇', '電車バス【しらいと】白糸台',
-                    '電車バス【これまさ】是政', '電車バス【たまれい】多磨霊園', '電車バス【ひがしふちゅう】東府中', '電車バス【ふちゅうほん】府中本町', '電車バス【ぶばいが】分倍河原',
-                    '電車バス【なかがわら】中河原', '電車バス【せいせき】聖蹟桜ヶ丘', '電車バス【せきど】関戸', '電車バス【えいやま】京王永山', '電車バス【たません】京王多摩センター',
-                    '電車バス【えびす】恵比寿', '電車バス【なかめ】中目黒', '電車バス【ゆうてんじ】祐天寺', '電車バス【がくだい】学芸大学', '電車バス【とりつだい】都立大学',
-                    '電車バス【みどりが】緑が丘', '電車バス【おおおか】大岡山', '電車バス【いしかわだい】石川台', '電車バス【ゆきが】雪が谷大塚', '電車バス【おんたけ】御嶽山',
-                    '電車バス【くがはら】久が原', '電車バス【ちどり】千鳥町', '電車バス【いけがみ】池上', '電車バス【はすぬま】蓮沼', '電車バス【かまた】蒲田',
-                    '電車バス【こうじや】糀谷', '電車バス【おおもり】大森海岸', '電車バス【へいわじま】平和島', '電車バス【おおもりまち】大森町', '電車バス【うめやしき】梅屋敷',
-                    '電車バス【けいきゅうかま】京急蒲田', '電車バス【ざっしき】雑色', '電車バス【ろくごう】六郷土手', '電車バス【たまがわ】多摩川', '電車バス【やぐちの】矢口渡',
-                    '電車バス【むさしに】武蔵新田', '電車バス【しもまるこ】下丸子', '電車バス【うのき】鵜の木', '電車バス【ぬまべ】沼部', '電車バス【たまだい】多摩川台',
-                    '電車バス【でんちょうほん】田園調布本町', '電車バス【おくさわ】奥沢', '電車バス【みどりがおか２】緑が丘2', '電車バス【いしかわ２】石川台2', '電車バス【せんぞく】洗足池',
-                    '電車バス【ながはら】長原', '電車バス【はたのだい】旗の台', '電車バス【えばら】荏原町', '電車バス【なかのぶ】中延', '電車バス【とごし】戸越',
-                    '電車バス【ごたんだ】五反田', '電車バス【おおさき】大崎', '電車バス【しながわ】品川', '電車バス【しんばば】新馬場', '電車バス【あおものよこ】青物横丁',
-                    '電車バス【さめず】鮫洲', '電車バス【たちあい】立会川', '電車バス【おおいまち】大井町', '電車バス【にしおおい】西大井', '電車バス【えばらまち２】荏原町2',
-                    '電車バス【むさしこ】武蔵小山', '電車バス【にしこやま】西小山', '電車バス【せんぞく２】洗足', '電車バス【きたせんぞく】北千束', '電車バス【おおおかとうこう】大岡山東工大',
-                    '電車バス【はたのしょうわ】旗の台昭和大', '電車バス【えばらなか】荏原中延', '電車バス【なかのぶしょう】中延商店街', '電車バス【とごしぎん】戸越銀座', '電車バス【ごたんゆう】五反田ゆうぽうと',
-                    '電車バス【あかさか】赤坂', '電車バス【ろっぽんぎ】六本木', '電車バス【あざぶ】麻布十番', '電車バス【しんばし】新橋', '電車バス【ぎんざ】銀座'
-                ];
+                // destinations.jsから行き先リストを取得
+                this.allDestinations = window.destinationsList || [];
 
                 this.defaultDestinations = [
-                    '電車バス【よこはま】横浜',
-                    '電車バス【オラウータン】長崎', 
-                    '電車バス【むらやま】新潟',
-                    '電車バス【ムーンライト】博多',
-                    'ANAの便で東京',
-                    '新幹線！！大阪→一泊'
+                    '電車で行く【東横線】横浜',
+                    'わりと近い【静鉄バス】静岡', 
+                    '行きたい【とき311号】新潟',
+                    '地獄の【はかた号】博多',
+                    'まさかの【大韓航空2104便】ソウル',
+                    'どうして【徒歩で行く】清澄白河'
                 ];
                 
                 this.destinations = [...this.defaultDestinations];
@@ -715,7 +701,7 @@
 
             bindEvents() {
                 const rollButton = document.getElementById('rollButton');
-                const diceTimeButton = document.getElementById('diceTimeButton');
+                const destinationAnnouncementButton = document.getElementById('destinationAnnouncementButton');
                 const mainDice = document.getElementById('mainDice');
                 const settingsBtn = document.getElementById('settingsBtn');
                 const saveBtn = document.getElementById('saveBtn');
@@ -724,7 +710,7 @@
                 const historyTab = document.getElementById('historyTab');
 
                 rollButton.addEventListener('click', () => this.rollDice());
-                diceTimeButton.addEventListener('click', () => this.diceTime());
+                destinationAnnouncementButton.addEventListener('click', () => this.destinationAnnouncement());
                 mainDice.addEventListener('click', () => this.rollDice());
                 settingsBtn.addEventListener('click', () => this.showSettings());
                 saveBtn.addEventListener('click', () => this.saveSettings());
@@ -767,17 +753,22 @@
                 });
             }
 
-            diceTime() {
+            destinationAnnouncement() {
+                if (this.allDestinations.length === 0) {
+                    alert('行き先データが読み込まれていません');
+                    return;
+                }
+
                 const shuffled = [...this.allDestinations].sort(() => Math.random() - 0.5);
                 this.destinations = shuffled.slice(0, 6);
                 this.saveDestinations();
                 this.initializeBoard();
                 
-                const diceTimeButton = document.getElementById('diceTimeButton');
-                const originalText = diceTimeButton.textContent;
-                diceTimeButton.textContent = '✨ 新しい行き先をセット！';
+                const destinationAnnouncementButton = document.getElementById('destinationAnnouncementButton');
+                const originalText = destinationAnnouncementButton.textContent;
+                destinationAnnouncementButton.textContent = '✨ 新しい行き先をセット！';
                 setTimeout(() => {
-                    diceTimeButton.textContent = originalText;
+                    destinationAnnouncementButton.textContent = originalText;
                 }, 2000);
             }
 
@@ -839,11 +830,11 @@
                 
                 this.isRolling = true;
                 const rollButton = document.getElementById('rollButton');
-                const diceTimeButton = document.getElementById('diceTimeButton');
+                const destinationAnnouncementButton = document.getElementById('destinationAnnouncementButton');
                 const mainDice = document.getElementById('mainDice');
                 
                 rollButton.disabled = true;
-                diceTimeButton.disabled = true;
+                destinationAnnouncementButton.disabled = true;
                 mainDice.classList.add('rolling');
 
                 const rollDuration = 1500;
@@ -868,7 +859,7 @@
                 await this.showResult(finalRoll, destination);
                 
                 rollButton.disabled = false;
-                diceTimeButton.disabled = false;
+                destinationAnnouncementButton.disabled = false;
                 this.isRolling = false;
             }
 
