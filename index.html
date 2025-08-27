@@ -139,7 +139,7 @@
             75% { background: #fff8dc; }
         }
 
-        /* サイコロドットパターン */
+        /* サイコロドットパターン - 修正版 */
         .dice-dots {
             width: 40px;
             height: 40px;
@@ -162,39 +162,36 @@
             border-radius: 50%;
             justify-self: center;
             align-self: center;
+            display: none; /* デフォルトで非表示 */
         }
 
-        /* サイコロの目のパターン - より正確なサイコロらしいレイアウト */
-        .dice-1 .dot:nth-child(5) { display: block; }
-        .dice-1 .dot:not(:nth-child(5)) { display: none; }
+        /* 正しいサイコロのドットパターン */
+        .dice-1 .dot:nth-child(5) { display: block; background: #ff0000; } /* 中央 - 赤色 */
 
-        .dice-2 .dot:nth-child(1) { display: block; }
-        .dice-2 .dot:nth-child(9) { display: block; }
-        .dice-2 .dot:not(:nth-child(1)):not(:nth-child(9)) { display: none; }
+        .dice-2 .dot:nth-child(1) { display: block; } /* 左上 */
+        .dice-2 .dot:nth-child(9) { display: block; } /* 右下 */
 
-        .dice-3 .dot:nth-child(1) { display: block; }
-        .dice-3 .dot:nth-child(5) { display: block; }
-        .dice-3 .dot:nth-child(9) { display: block; }
-        .dice-3 .dot:not(:nth-child(1)):not(:nth-child(5)):not(:nth-child(9)) { display: none; }
+        .dice-3 .dot:nth-child(1) { display: block; } /* 左上 */
+        .dice-3 .dot:nth-child(5) { display: block; } /* 中央 */
+        .dice-3 .dot:nth-child(9) { display: block; } /* 右下 */
 
-        .dice-4 .dot:nth-child(1) { display: block; }
-        .dice-4 .dot:nth-child(3) { display: block; }
-        .dice-4 .dot:nth-child(7) { display: block; }
-        .dice-4 .dot:nth-child(9) { display: block; }
-        .dice-4 .dot:not(:nth-child(1)):not(:nth-child(3)):not(:nth-child(7)):not(:nth-child(9)) { display: none; }
+        .dice-4 .dot:nth-child(1) { display: block; } /* 左上 */
+        .dice-4 .dot:nth-child(3) { display: block; } /* 右上 */
+        .dice-4 .dot:nth-child(7) { display: block; } /* 左下 */
+        .dice-4 .dot:nth-child(9) { display: block; } /* 右下 */
 
-        .dice-5 .dot:nth-child(1) { display: block; }
-        .dice-5 .dot:nth-child(3) { display: block; }
-        .dice-5 .dot:nth-child(5) { display: block; }
-        .dice-5 .dot:nth-child(7) { display: block; }
-        .dice-5 .dot:nth-child(9) { display: block; }
+        .dice-5 .dot:nth-child(1) { display: block; } /* 左上 */
+        .dice-5 .dot:nth-child(3) { display: block; } /* 右上 */
+        .dice-5 .dot:nth-child(5) { display: block; } /* 中央 */
+        .dice-5 .dot:nth-child(7) { display: block; } /* 左下 */
+        .dice-5 .dot:nth-child(9) { display: block; } /* 右下 */
 
-        .dice-6 .dot:nth-child(1) { display: block; }
-        .dice-6 .dot:nth-child(3) { display: block; }
-        .dice-6 .dot:nth-child(4) { display: block; }
-        .dice-6 .dot:nth-child(6) { display: block; }
-        .dice-6 .dot:nth-child(7) { display: block; }
-        .dice-6 .dot:nth-child(9) { display: block; }
+        .dice-6 .dot:nth-child(1) { display: block; } /* 左上 */
+        .dice-6 .dot:nth-child(3) { display: block; } /* 右上 */
+        .dice-6 .dot:nth-child(4) { display: block; } /* 左中 */
+        .dice-6 .dot:nth-child(6) { display: block; } /* 右中 */
+        .dice-6 .dot:nth-child(7) { display: block; } /* 左下 */
+        .dice-6 .dot:nth-child(9) { display: block; } /* 右下 */
 
         .destination-content {
             flex: 1;
@@ -271,7 +268,11 @@
             border-radius: 50%;
             justify-self: center;
             align-self: center;
+            display: none; /* デフォルトで非表示 */
         }
+
+        /* メインサイコロの1の目は赤色 */
+        .main-dice.dice-1 .dot:nth-child(5) { background: #ff0000; }
 
         .buttons-container {
             display: flex;
@@ -515,7 +516,7 @@
         </div>
 
         <div class="dice-container">
-            <div class="main-dice" id="mainDice">
+            <div class="main-dice dice-1" id="mainDice">
                 <div class="dot"></div><div class="dot"></div><div class="dot"></div>
                 <div class="dot"></div><div class="dot"></div><div class="dot"></div>
                 <div class="dot"></div><div class="dot"></div><div class="dot"></div>
@@ -594,12 +595,24 @@
         </div>
     </div>
 
-    <script src="destinations.js"></script>
     <script>
         class SugorokuTravelGame {
             constructor() {
-                // destinations.jsから行き先リストを取得
-                this.allDestinations = window.destinationsList || [];
+                // デフォルト行き先リスト
+                this.allDestinations = [
+                    '電車で行く【東横線】横浜',
+                    'わりと近い【静鉄バス】静岡', 
+                    '行きたい【とき311号】新潟',
+                    '地獄の【はかた号】博多',
+                    'まさかの【大韓航空2104便】ソウル',
+                    'どうして【徒歩で行く】清澄白河',
+                    '気になる【小田急線】新宿',
+                    'ちょっと遠い【つばめ341号】鹿児島中央',
+                    'のんびり【山手線】上野',
+                    '頑張って【あさま567号】長野',
+                    'まさかの【フェリー】四国',
+                    '意外と近い【京急】川崎'
+                ];
 
                 this.defaultDestinations = [
                     '電車で行く【東横線】横浜',
@@ -629,22 +642,38 @@
             }
 
             loadDestinations() {
-                const saved = JSON.parse(localStorage.getItem('sugoroku-destinations') || '[]');
-                if (saved.length === 6) {
-                    this.destinations = saved;
+                try {
+                    const saved = JSON.parse(localStorage.getItem('sugoroku-destinations') || '[]');
+                    if (saved.length === 6) {
+                        this.destinations = saved;
+                    }
+                } catch (e) {
+                    console.log('設定の読み込みに失敗しました');
                 }
             }
 
             saveDestinations() {
-                localStorage.setItem('sugoroku-destinations', JSON.stringify(this.destinations));
+                try {
+                    localStorage.setItem('sugoroku-destinations', JSON.stringify(this.destinations));
+                } catch (e) {
+                    console.log('設定の保存に失敗しました');
+                }
             }
 
             loadHistory() {
-                return JSON.parse(localStorage.getItem('sugoroku-history') || '[]');
+                try {
+                    return JSON.parse(localStorage.getItem('sugoroku-history') || '[]');
+                } catch (e) {
+                    return [];
+                }
             }
 
             saveHistory() {
-                localStorage.setItem('sugoroku-history', JSON.stringify(this.history));
+                try {
+                    localStorage.setItem('sugoroku-history', JSON.stringify(this.history));
+                } catch (e) {
+                    console.log('履歴の保存に失敗しました');
+                }
             }
 
             initializeBoard() {
@@ -754,211 +783,4 @@
             }
 
             destinationAnnouncement() {
-                if (this.allDestinations.length === 0) {
-                    alert('行き先データが読み込まれていません');
-                    return;
-                }
-
-                const shuffled = [...this.allDestinations].sort(() => Math.random() - 0.5);
-                this.destinations = shuffled.slice(0, 6);
-                this.saveDestinations();
-                this.initializeBoard();
-                
-                const destinationAnnouncementButton = document.getElementById('destinationAnnouncementButton');
-                const originalText = destinationAnnouncementButton.textContent;
-                destinationAnnouncementButton.textContent = '✨ 新しい行き先をセット！';
-                setTimeout(() => {
-                    destinationAnnouncementButton.textContent = originalText;
-                }, 2000);
-            }
-
-            showSettings() {
-                document.getElementById('gameScreen').classList.add('hidden');
-                document.getElementById('settingsScreen').classList.remove('hidden');
-                this.loadSettingsValues();
-                this.showTab('destinations');
-            }
-
-            hideSettings() {
-                document.getElementById('settingsScreen').classList.add('hidden');
-                document.getElementById('gameScreen').classList.remove('hidden');
-            }
-
-            saveSettings() {
-                const newDestinations = [];
-                let hasEmpty = false;
-
-                for (let i = 1; i <= 6; i++) {
-                    const input = document.getElementById(`dest${i}`);
-                    const value = input.value.trim();
-                    if (value === '') {
-                        hasEmpty = true;
-                        input.style.borderColor = '#ff6b6b';
-                        input.style.backgroundColor = '#fff5f5';
-                    } else {
-                        input.style.borderColor = '#ddd';
-                        input.style.backgroundColor = 'white';
-                        newDestinations.push(value);
-                    }
-                }
-
-                if (hasEmpty) {
-                    alert('すべての行き先を入力してください！');
-                    return;
-                }
-
-                this.destinations = newDestinations;
-                this.saveDestinations();
-                this.initializeBoard();
-                this.hideSettings();
-                
-                const saveBtn = document.getElementById('saveBtn');
-                const originalText = saveBtn.textContent;
-                saveBtn.textContent = '✅ 保存完了！';
-                setTimeout(() => {
-                    saveBtn.textContent = originalText;
-                }, 1500);
-            }
-
-            updateMainDice(number) {
-                const mainDice = document.getElementById('mainDice');
-                mainDice.className = `main-dice dice-${number}`;
-            }
-
-            async rollDice() {
-                if (this.isRolling) return;
-                
-                this.isRolling = true;
-                const rollButton = document.getElementById('rollButton');
-                const destinationAnnouncementButton = document.getElementById('destinationAnnouncementButton');
-                const mainDice = document.getElementById('mainDice');
-                
-                rollButton.disabled = true;
-                destinationAnnouncementButton.disabled = true;
-                mainDice.classList.add('rolling');
-
-                const rollDuration = 1500;
-                const rollInterval = 100;
-                const rollCount = rollDuration / rollInterval;
-
-                for (let i = 0; i < rollCount; i++) {
-                    await new Promise(resolve => {
-                        setTimeout(() => {
-                            const randomNum = Math.floor(Math.random() * 6) + 1;
-                            this.updateMainDice(randomNum);
-                            resolve();
-                        }, rollInterval);
-                    });
-                }
-
-                const finalRoll = Math.floor(Math.random() * 6) + 1;
-                this.updateMainDice(finalRoll);
-                mainDice.classList.remove('rolling');
-
-                const destination = this.destinations[finalRoll - 1];
-                await this.showResult(finalRoll, destination);
-                
-                rollButton.disabled = false;
-                destinationAnnouncementButton.disabled = false;
-                this.isRolling = false;
-            }
-
-            async showResult(diceRoll, destination) {
-                const items = document.querySelectorAll('.destination-item');
-                const targetItem = items[diceRoll - 1];
-                
-                items.forEach(item => item.classList.remove('highlight'));
-                
-                targetItem.classList.add('highlight');
-                this.createSparkles(targetItem);
-
-                const result = document.getElementById('result');
-                const resultDestination = document.getElementById('resultDestination');
-                const resultMessage = document.getElementById('resultMessage');
-                
-                resultDestination.textContent = destination;
-                resultMessage.textContent = `サイコロの目: ${diceRoll} - ${this.getRandomMessage()}`;
-                
-                result.style.display = 'block';
-
-                this.addToHistory(diceRoll, destination);
-
-                setTimeout(() => {
-                    targetItem.classList.remove('highlight');
-                }, 3000);
-            }
-
-            createSparkles(element) {
-                const rect = element.getBoundingClientRect();
-                const sparkleCount = 12;
-
-                for (let i = 0; i < sparkleCount; i++) {
-                    setTimeout(() => {
-                        const sparkle = document.createElement('div');
-                        sparkle.className = 'sparkle';
-                        
-                        const x = Math.random() * rect.width;
-                        const y = Math.random() * rect.height;
-                        
-                        sparkle.style.left = x + 'px';
-                        sparkle.style.top = y + 'px';
-                        
-                        element.appendChild(sparkle);
-                        
-                        setTimeout(() => sparkle.remove(), 1000);
-                    }, i * 80);
-                }
-            }
-
-            addToHistory(diceRoll, destination) {
-                const historyItem = {
-                    roll: diceRoll,
-                    destination: destination,
-                    timestamp: new Date().toLocaleString('ja-JP', { 
-                        month: 'short',
-                        day: 'numeric',
-                        hour: '2-digit', 
-                        minute: '2-digit' 
-                    })
-                };
-
-                this.history.unshift(historyItem);
-
-                if (this.history.length > 50) {
-                    this.history = this.history.slice(0, 50);
-                }
-
-                this.saveHistory();
-                this.updateHistoryDisplay();
-            }
-
-            updateHistoryDisplay() {
-                const historyContainer = document.getElementById('history');
-                const historyList = document.getElementById('historyList');
-                
-                historyContainer.style.display = 'block';
-                historyList.innerHTML = '';
-
-                const recentHistory = this.history.slice(0, 5);
-                recentHistory.forEach(item => {
-                    const historyItem = document.createElement('div');
-                    historyItem.className = 'history-item';
-                    historyItem.innerHTML = `
-                        <span>${item.destination}</span>
-                        <span>🎲${item.roll} - ${item.timestamp}</span>
-                    `;
-                    historyList.appendChild(historyItem);
-                });
-            }
-
-            getRandomMessage() {
-                return this.messages[Math.floor(Math.random() * this.messages.length)];
-            }
-        }
-
-        window.addEventListener('DOMContentLoaded', () => {
-            new SugorokuTravelGame();
-        });
-    </script>
-</body>
-</html>
+                if (this.allDestinations.length ===
