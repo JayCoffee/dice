@@ -1,0 +1,973 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>サイコロの旅</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Hiragino Kaku Gothic Pro', 'ヒラギノ角ゴ Pro W3', Meiryo, sans-serif;
+            background: #f0f0f0;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .header {
+            background: linear-gradient(45deg, #ff6b6b, #ff8e8e);
+            color: white;
+            text-align: center;
+            padding: 20px 15px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+            position: relative;
+        }
+
+        .header-content {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 5px;
+        }
+
+        .dice-icon {
+            width: 40px;
+            height: 40px;
+            background: white;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        .header h1 {
+            font-size: 1.8rem;
+            font-weight: bold;
+            margin: 0;
+        }
+
+        .settings-btn {
+            position: absolute;
+            right: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            color: white;
+            padding: 8px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 1.2rem;
+            transition: all 0.3s ease;
+        }
+
+        .settings-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-50%) scale(1.1);
+        }
+
+        .screen {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            padding: 20px;
+            max-width: 400px;
+            margin: 0 auto;
+            width: 100%;
+        }
+
+        .screen.hidden {
+            display: none;
+        }
+
+        /* ゲーム画面 */
+        .destinations-list {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            margin-bottom: 20px;
+        }
+
+        .destination-item {
+            display: flex;
+            align-items: center;
+            padding: 15px;
+            border-bottom: 1px solid #eee;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            position: relative;
+        }
+
+        .destination-item:last-child {
+            border-bottom: none;
+        }
+
+        .destination-item:hover {
+            background: #f8f8f8;
+        }
+
+        .destination-item.highlight {
+            animation: highlight-pulse 2s ease-in-out;
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+            transform: scale(1.02);
+            z-index: 10;
+            box-shadow: 0 4px 20px rgba(255, 193, 7, 0.3);
+        }
+
+        @keyframes highlight-pulse {
+            0%, 100% { background: #fff3cd; }
+            25% { background: #fff8dc; }
+            50% { background: #fffacd; }
+            75% { background: #fff8dc; }
+        }
+
+        /* サイコロドットパターン */
+        .dice-dots {
+            width: 40px;
+            height: 40px;
+            background: white;
+            border: 2px solid #333;
+            border-radius: 6px;
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            grid-template-rows: repeat(3, 1fr);
+            gap: 2px;
+            padding: 4px;
+            margin-right: 15px;
+            flex-shrink: 0;
+        }
+
+        .dot {
+            width: 6px;
+            height: 6px;
+            background: #333;
+            border-radius: 50%;
+            justify-self: center;
+            align-self: center;
+        }
+
+        /* サイコロの目のパターン */
+        .dice-1 .dot:nth-child(5) { display: block; }
+        .dice-1 .dot:not(:nth-child(5)) { display: none; }
+
+        .dice-2 .dot:nth-child(3) { display: block; }
+        .dice-2 .dot:nth-child(7) { display: block; }
+        .dice-2 .dot:not(:nth-child(3)):not(:nth-child(7)) { display: none; }
+
+        .dice-3 .dot:nth-child(3) { display: block; }
+        .dice-3 .dot:nth-child(5) { display: block; }
+        .dice-3 .dot:nth-child(7) { display: block; }
+        .dice-3 .dot:not(:nth-child(3)):not(:nth-child(5)):not(:nth-child(7)) { display: none; }
+
+        .dice-4 .dot:nth-child(1) { display: block; }
+        .dice-4 .dot:nth-child(3) { display: block; }
+        .dice-4 .dot:nth-child(7) { display: block; }
+        .dice-4 .dot:nth-child(9) { display: block; }
+        .dice-4 .dot:not(:nth-child(1)):not(:nth-child(3)):not(:nth-child(7)):not(:nth-child(9)) { display: none; }
+
+        .dice-5 .dot:nth-child(1) { display: block; }
+        .dice-5 .dot:nth-child(3) { display: block; }
+        .dice-5 .dot:nth-child(5) { display: block; }
+        .dice-5 .dot:nth-child(7) { display: block; }
+        .dice-5 .dot:nth-child(9) { display: block; }
+
+        .dice-6 .dot:nth-child(1) { display: block; }
+        .dice-6 .dot:nth-child(3) { display: block; }
+        .dice-6 .dot:nth-child(4) { display: block; }
+        .dice-6 .dot:nth-child(6) { display: block; }
+        .dice-6 .dot:nth-child(7) { display: block; }
+        .dice-6 .dot:nth-child(9) { display: block; }
+        .dice-6 .dot:nth-child(5):not(.dice-6) { display: none; }
+
+        .destination-content {
+            flex: 1;
+        }
+
+        .transport-method {
+            font-size: 0.8rem;
+            color: #666;
+            background: #f0f0f0;
+            padding: 2px 8px;
+            border-radius: 12px;
+            display: inline-block;
+            margin-bottom: 4px;
+        }
+
+        .destination-name {
+            font-size: 1.1rem;
+            font-weight: bold;
+            color: #333;
+        }
+
+        /* 背景色の設定 */
+        .destination-item:nth-child(1) { background: linear-gradient(135deg, #ff9a9e, #fecfef); }
+        .destination-item:nth-child(2) { background: linear-gradient(135deg, #ffa726, #ffcc80); }
+        .destination-item:nth-child(3) { background: linear-gradient(135deg, #ab47bc, #e1bee7); }
+        .destination-item:nth-child(4) { background: linear-gradient(135deg, #ffee58, #fff59d); }
+        .destination-item:nth-child(5) { background: linear-gradient(135deg, #66bb6a, #a5d6a7); }
+        .destination-item:nth-child(6) { background: linear-gradient(135deg, #42a5f5, #90caf9); }
+
+        .dice-container {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .main-dice {
+            width: 80px;
+            height: 80px;
+            background: white;
+            border: 3px solid #333;
+            border-radius: 12px;
+            margin: 0 auto 20px;
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            grid-template-rows: repeat(3, 1fr);
+            gap: 4px;
+            padding: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .main-dice:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
+        }
+
+        .main-dice.rolling {
+            animation: roll 1.5s ease-in-out;
+        }
+
+        @keyframes roll {
+            0% { transform: rotate(0deg) scale(1); }
+            25% { transform: rotate(90deg) scale(1.1); }
+            50% { transform: rotate(180deg) scale(1.2); }
+            75% { transform: rotate(270deg) scale(1.1); }
+            100% { transform: rotate(360deg) scale(1); }
+        }
+
+        .main-dice .dot {
+            width: 12px;
+            height: 12px;
+            background: #333;
+            border-radius: 50%;
+            justify-self: center;
+            align-self: center;
+        }
+
+        .buttons-container {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .roll-button, .dice-time-button {
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .roll-button {
+            background: linear-gradient(135deg, #4CAF50, #45a049);
+            box-shadow: 0 4px 15px rgba(76, 175, 80, 0.3);
+        }
+
+        .dice-time-button {
+            background: linear-gradient(135deg, #ff9800, #f57c00);
+            box-shadow: 0 4px 15px rgba(255, 152, 0, 0.3);
+        }
+
+        .roll-button:hover, .dice-time-button:hover {
+            transform: translateY(-2px);
+        }
+
+        .roll-button:disabled, .dice-time-button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            box-shadow: none;
+            transform: none;
+        }
+
+        .result {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            margin-top: 10px;
+            text-align: center;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .result h3 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 1.3rem;
+        }
+
+        .result p {
+            color: #666;
+            font-size: 1rem;
+        }
+
+        .history {
+            background: white;
+            border-radius: 12px;
+            padding: 15px;
+            margin-top: 15px;
+            max-height: 200px;
+            overflow-y: auto;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .history h4 {
+            margin-bottom: 15px;
+            color: #333;
+            font-size: 1.1rem;
+        }
+
+        .history-item {
+            background: #f8f9fa;
+            padding: 10px;
+            margin-bottom: 8px;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-left: 3px solid #007bff;
+        }
+
+        /* 設定画面 */
+        .settings-container {
+            background: white;
+            border-radius: 12px;
+            padding: 25px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .settings-title {
+            text-align: center;
+            font-size: 1.3rem;
+            margin-bottom: 25px;
+            color: #333;
+            font-weight: bold;
+        }
+
+        .tabs {
+            display: flex;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #eee;
+        }
+
+        .tab {
+            flex: 1;
+            padding: 12px;
+            text-align: center;
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 1rem;
+            color: #666;
+            transition: all 0.3s ease;
+        }
+
+        .tab.active {
+            color: #4CAF50;
+            border-bottom: 2px solid #4CAF50;
+            font-weight: bold;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .input-group {
+            margin-bottom: 15px;
+        }
+
+        .input-label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: #555;
+            font-size: 0.9rem;
+        }
+
+        .destination-input {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            background: white;
+        }
+
+        .destination-input:focus {
+            outline: none;
+            border-color: #4CAF50;
+            box-shadow: 0 0 10px rgba(76, 175, 80, 0.2);
+        }
+
+        .settings-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 25px;
+        }
+
+        .save-btn, .cancel-btn {
+            flex: 1;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .save-btn {
+            background: linear-gradient(135deg, #4CAF50, #45a049);
+            color: white;
+            box-shadow: 0 4px 15px rgba(76, 175, 80, 0.3);
+        }
+
+        .cancel-btn {
+            background: linear-gradient(135deg, #ff6b6b, #ff5252);
+            color: white;
+            box-shadow: 0 4px 15px rgba(255, 107, 107, 0.3);
+        }
+
+        .save-btn:hover, .cancel-btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .history-settings {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .sparkle {
+            position: absolute;
+            width: 6px;
+            height: 6px;
+            background: #ffd700;
+            border-radius: 50%;
+            pointer-events: none;
+            animation: sparkle 1s ease-out forwards;
+        }
+
+        @keyframes sparkle {
+            0% {
+                transform: scale(0) rotate(0deg);
+                opacity: 1;
+            }
+            100% {
+                transform: scale(1) rotate(180deg);
+                opacity: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="header-content">
+            <div class="dice-icon">🎲</div>
+            <h1>サイコロの旅</h1>
+        </div>
+        <button class="settings-btn" id="settingsBtn">⚙️</button>
+    </div>
+
+    <!-- ゲーム画面 -->
+    <div class="screen" id="gameScreen">
+        <div class="destinations-list" id="destinationsList">
+            <!-- 行き先リストが動的に生成される -->
+        </div>
+
+        <div class="dice-container">
+            <div class="main-dice" id="mainDice">
+                <div class="dot"></div><div class="dot"></div><div class="dot"></div>
+                <div class="dot"></div><div class="dot"></div><div class="dot"></div>
+                <div class="dot"></div><div class="dot"></div><div class="dot"></div>
+            </div>
+            <div class="buttons-container">
+                <button class="roll-button" id="rollButton">サイコロを振る！</button>
+                <button class="dice-time-button" id="diceTimeButton">🎯 サイコロタイム！</button>
+            </div>
+        </div>
+
+        <div class="result" id="result" style="display: none;">
+            <h3 id="resultDestination">-</h3>
+            <p id="resultMessage">-</p>
+        </div>
+
+        <div class="history" id="history" style="display: none;">
+            <h4>🗺️ 旅の記録</h4>
+            <div id="historyList"></div>
+        </div>
+    </div>
+
+    <!-- 設定画面 -->
+    <div class="screen hidden" id="settingsScreen">
+        <div class="settings-container">
+            <h2 class="settings-title">⚙️ 設定</h2>
+            
+            <div class="tabs">
+                <button class="tab active" id="destinationsTab">🏖️ 行き先編集</button>
+                <button class="tab" id="historyTab">📜 旅の履歴</button>
+            </div>
+
+            <!-- 行き先編集タブ -->
+            <div class="tab-content active" id="destinationsContent">
+                <div class="input-group">
+                    <label class="input-label">🎲 1の目 - 行き先:</label>
+                    <input type="text" class="destination-input" id="dest1" placeholder="例: 電車バス【よこはま】横浜">
+                </div>
+                
+                <div class="input-group">
+                    <label class="input-label">🎲 2の目 - 行き先:</label>
+                    <input type="text" class="destination-input" id="dest2" placeholder="例: 電車バス【オラウータン】長崎">
+                </div>
+                
+                <div class="input-group">
+                    <label class="input-label">🎲 3の目 - 行き先:</label>
+                    <input type="text" class="destination-input" id="dest3" placeholder="例: 電車バス【むらやま】新潟">
+                </div>
+                
+                <div class="input-group">
+                    <label class="input-label">🎲 4の目 - 行き先:</label>
+                    <input type="text" class="destination-input" id="dest4" placeholder="例: 電車バス【ムーンライト】博多">
+                </div>
+                
+                <div class="input-group">
+                    <label class="input-label">🎲 5の目 - 行き先:</label>
+                    <input type="text" class="destination-input" id="dest5" placeholder="例: ANAの便で東京">
+                </div>
+                
+                <div class="input-group">
+                    <label class="input-label">🎲 6の目 - 行き先:</label>
+                    <input type="text" class="destination-input" id="dest6" placeholder="例: 新幹線！！大阪→一泊">
+                </div>
+            </div>
+
+            <!-- 履歴タブ -->
+            <div class="tab-content" id="historyContent">
+                <div class="history-settings" id="historySettings">
+                    <p style="text-align: center; color: #666; margin: 20px 0;">まだ旅の記録がありません</p>
+                </div>
+            </div>
+
+            <div class="settings-buttons">
+                <button class="save-btn" id="saveBtn">💾 保存</button>
+                <button class="cancel-btn" id="cancelBtn">❌ キャンセル</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        class SugorokuTravelGame {
+            constructor() {
+                // 三軒茶屋から1,000円圏内の100か所のスポット
+                this.allDestinations = [
+                    '電車バス【さんちゃ】三軒茶屋', '電車バス【しぶや】渋谷', '電車バス【はらじゅく】原宿', '電車バス【おもて】表参道', '電車バス【よよぎ】代々木',
+                    '電車バス【しもきた】下北沢', '電車バス【きちじょうじ】吉祥寺', '電車バス【いのかしら】井の頭', '電車バス【くがやま】久我山', '電車バス【にしおぎ】西荻窪',
+                    '電車バス【じゆうが】自由が丘', '電車バス【でんちょう】田園調布', '電車バス【とどろき】等々力', '電車バス【くほんぶつ】九品仏', '電車バス【かみのげ】上野毛',
+                    '電車バス【ふたこ】二子玉川', '電車バス【せいじょう】成城学園', '電車バス【きたみ】喜多見', '電車バス【こまえ】狛江', '電車バス【ちょうふ】調布',
+                    '電車バス【きょうどう】経堂', '電車バス【ごうとくじ】豪徳寺', '電車バス【うめがおか】梅ヶ丘', '電車バス【だいたばし】代田橋', '電車バス【めいだい】明大前',
+                    '電車バス【いけのうえ】池ノ上', '電車バス【しんだいた】新代田', '電車バス【ひがしまつ】東松原', '電車バス【さくらじょう】桜上水', '電車バス【かみきた】上北沢',
+                    '電車バス【あしはな】芦花公園', '電車バス【ちとから】千歳烏山', '電車バス【せんがわ】仙川', '電車バス【つつじが】つつじヶ丘', '電車バス【しばさき】柴崎',
+                    '電車バス【こくりょう】国領', '電車バス【ふだてん】布田天神', '電車バス【けいおうたま】京王多摩川', '電車バス【きょうてい】多摩川競艇', '電車バス【しらいと】白糸台',
+                    '電車バス【これまさ】是政', '電車バス【たまれい】多磨霊園', '電車バス【ひがしふちゅう】東府中', '電車バス【ふちゅうほん】府中本町', '電車バス【ぶばいが】分倍河原',
+                    '電車バス【なかがわら】中河原', '電車バス【せいせき】聖蹟桜ヶ丘', '電車バス【せきど】関戸', '電車バス【えいやま】京王永山', '電車バス【たません】京王多摩センター',
+                    '電車バス【えびす】恵比寿', '電車バス【なかめ】中目黒', '電車バス【ゆうてんじ】祐天寺', '電車バス【がくだい】学芸大学', '電車バス【とりつだい】都立大学',
+                    '電車バス【みどりが】緑が丘', '電車バス【おおおか】大岡山', '電車バス【いしかわだい】石川台', '電車バス【ゆきが】雪が谷大塚', '電車バス【おんたけ】御嶽山',
+                    '電車バス【くがはら】久が原', '電車バス【ちどり】千鳥町', '電車バス【いけがみ】池上', '電車バス【はすぬま】蓮沼', '電車バス【かまた】蒲田',
+                    '電車バス【こうじや】糀谷', '電車バス【おおもり】大森海岸', '電車バス【へいわじま】平和島', '電車バス【おおもりまち】大森町', '電車バス【うめやしき】梅屋敷',
+                    '電車バス【けいきゅうかま】京急蒲田', '電車バス【ざっしき】雑色', '電車バス【ろくごう】六郷土手', '電車バス【たまがわ】多摩川', '電車バス【やぐちの】矢口渡',
+                    '電車バス【むさしに】武蔵新田', '電車バス【しもまるこ】下丸子', '電車バス【うのき】鵜の木', '電車バス【ぬまべ】沼部', '電車バス【たまだい】多摩川台',
+                    '電車バス【でんちょうほん】田園調布本町', '電車バス【おくさわ】奥沢', '電車バス【みどりがおか２】緑が丘2', '電車バス【いしかわ２】石川台2', '電車バス【せんぞく】洗足池',
+                    '電車バス【ながはら】長原', '電車バス【はたのだい】旗の台', '電車バス【えばら】荏原町', '電車バス【なかのぶ】中延', '電車バス【とごし】戸越',
+                    '電車バス【ごたんだ】五反田', '電車バス【おおさき】大崎', '電車バス【しながわ】品川', '電車バス【しんばば】新馬場', '電車バス【あおものよこ】青物横丁',
+                    '電車バス【さめず】鮫洲', '電車バス【たちあい】立会川', '電車バス【おおいまち】大井町', '電車バス【にしおおい】西大井', '電車バス【えばらまち２】荏原町2',
+                    '電車バス【むさしこ】武蔵小山', '電車バス【にしこやま】西小山', '電車バス【せんぞく２】洗足', '電車バス【きたせんぞく】北千束', '電車バス【おおおかとうこう】大岡山東工大',
+                    '電車バス【はたのしょうわ】旗の台昭和大', '電車バス【えばらなか】荏原中延', '電車バス【なかのぶしょう】中延商店街', '電車バス【とごしぎん】戸越銀座', '電車バス【ごたんゆう】五反田ゆうぽうと',
+                    '電車バス【あかさか】赤坂', '電車バス【ろっぽんぎ】六本木', '電車バス【あざぶ】麻布十番', '電車バス【しんばし】新橋', '電車バス【ぎんざ】銀座'
+                ];
+
+                this.defaultDestinations = [
+                    '電車バス【よこはま】横浜',
+                    '電車バス【オラウータン】長崎', 
+                    '電車バス【むらやま】新潟',
+                    '電車バス【ムーンライト】博多',
+                    'ANAの便で東京',
+                    '新幹線！！大阪→一泊'
+                ];
+                
+                this.destinations = [...this.defaultDestinations];
+                this.loadDestinations();
+                
+                this.messages = [
+                    'さあ、出発だ！', '新たな冒険の始まり！', 'どんな出会いが待っているかな？',
+                    '美味しいお店はあるかな？', '素晴らしい景色を見に行こう！', '電車に乗って出かけよう！',
+                    'カフェでひと休みもいいね！', '街歩きを楽しもう！', 'ご当地グルメを堪能しよう！',
+                    '地元の人と触れ合おう！', '新しい発見がありそう！', '文化に触れる旅になりそう！'
+                ];
+
+                this.history = this.loadHistory();
+                this.isRolling = false;
+                
+                this.initializeBoard();
+                this.bindEvents();
+                this.loadSettingsValues();
+            }
+
+            loadDestinations() {
+                const saved = JSON.parse(localStorage.getItem('sugoroku-destinations') || '[]');
+                if (saved.length === 6) {
+                    this.destinations = saved;
+                }
+            }
+
+            saveDestinations() {
+                localStorage.setItem('sugoroku-destinations', JSON.stringify(this.destinations));
+            }
+
+            loadHistory() {
+                return JSON.parse(localStorage.getItem('sugoroku-history') || '[]');
+            }
+
+            saveHistory() {
+                localStorage.setItem('sugoroku-history', JSON.stringify(this.history));
+            }
+
+            initializeBoard() {
+                const container = document.getElementById('destinationsList');
+                container.innerHTML = '';
+
+                this.destinations.forEach((destination, index) => {
+                    const item = document.createElement('div');
+                    item.className = 'destination-item';
+                    item.dataset.index = index + 1;
+                    
+                    // サイコロのドットパターンを作成
+                    const diceDots = document.createElement('div');
+                    diceDots.className = `dice-dots dice-${index + 1}`;
+                    for (let i = 0; i < 9; i++) {
+                        const dot = document.createElement('div');
+                        dot.className = 'dot';
+                        diceDots.appendChild(dot);
+                    }
+
+                    // 行き先の内容を作成
+                    const content = document.createElement('div');
+                    content.className = 'destination-content';
+
+                    // 交通手段と行き先を分離
+                    const parts = destination.match(/^(.*?)【.*?】(.*)$/) || ['', '', destination];
+                    const transportMethod = parts[1] || '';
+                    const destinationName = parts[2] || destination;
+
+                    if (transportMethod) {
+                        const transport = document.createElement('div');
+                        transport.className = 'transport-method';
+                        transport.textContent = transportMethod;
+                        content.appendChild(transport);
+                    }
+
+                    const name = document.createElement('div');
+                    name.className = 'destination-name';
+                    name.textContent = destinationName;
+                    content.appendChild(name);
+
+                    item.appendChild(diceDots);
+                    item.appendChild(content);
+                    container.appendChild(item);
+                });
+            }
+
+            loadSettingsValues() {
+                for (let i = 1; i <= 6; i++) {
+                    const input = document.getElementById(`dest${i}`);
+                    if (input) input.value = this.destinations[i - 1];
+                }
+            }
+
+            bindEvents() {
+                const rollButton = document.getElementById('rollButton');
+                const diceTimeButton = document.getElementById('diceTimeButton');
+                const mainDice = document.getElementById('mainDice');
+                const settingsBtn = document.getElementById('settingsBtn');
+                const saveBtn = document.getElementById('saveBtn');
+                const cancelBtn = document.getElementById('cancelBtn');
+                const destinationsTab = document.getElementById('destinationsTab');
+                const historyTab = document.getElementById('historyTab');
+
+                rollButton.addEventListener('click', () => this.rollDice());
+                diceTimeButton.addEventListener('click', () => this.diceTime());
+                mainDice.addEventListener('click', () => this.rollDice());
+                settingsBtn.addEventListener('click', () => this.showSettings());
+                saveBtn.addEventListener('click', () => this.saveSettings());
+                cancelBtn.addEventListener('click', () => this.hideSettings());
+                
+                destinationsTab.addEventListener('click', () => this.showTab('destinations'));
+                historyTab.addEventListener('click', () => this.showTab('history'));
+            }
+
+            showTab(tab) {
+                document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+                
+                if (tab === 'destinations') {
+                    document.getElementById('destinationsTab').classList.add('active');
+                    document.getElementById('destinationsContent').classList.add('active');
+                } else {
+                    document.getElementById('historyTab').classList.add('active');
+                    document.getElementById('historyContent').classList.add('active');
+                    this.updateHistorySettings();
+                }
+            }
+
+            updateHistorySettings() {
+                const historySettings = document.getElementById('historySettings');
+                if (this.history.length === 0) {
+                    historySettings.innerHTML = '<p style="text-align: center; color: #666; margin: 20px 0;">まだ旅の記録がありません</p>';
+                    return;
+                }
+
+                historySettings.innerHTML = '';
+                this.history.forEach((item, index) => {
+                    const historyItem = document.createElement('div');
+                    historyItem.className = 'history-item';
+                    historyItem.innerHTML = `
+                        <span>#${this.history.length - index} ${item.destination}</span>
+                        <span>🎲${item.roll} - ${item.timestamp}</span>
+                    `;
+                    historySettings.appendChild(historyItem);
+                });
+            }
+
+            diceTime() {
+                const shuffled = [...this.allDestinations].sort(() => Math.random() - 0.5);
+                this.destinations = shuffled.slice(0, 6);
+                this.saveDestinations();
+                this.initializeBoard();
+                
+                const diceTimeButton = document.getElementById('diceTimeButton');
+                const originalText = diceTimeButton.textContent;
+                diceTimeButton.textContent = '✨ 新しい行き先をセット！';
+                setTimeout(() => {
+                    diceTimeButton.textContent = originalText;
+                }, 2000);
+            }
+
+            showSettings() {
+                document.getElementById('gameScreen').classList.add('hidden');
+                document.getElementById('settingsScreen').classList.remove('hidden');
+                this.loadSettingsValues();
+                this.showTab('destinations');
+            }
+
+            hideSettings() {
+                document.getElementById('settingsScreen').classList.add('hidden');
+                document.getElementById('gameScreen').classList.remove('hidden');
+            }
+
+            saveSettings() {
+                const newDestinations = [];
+                let hasEmpty = false;
+
+                for (let i = 1; i <= 6; i++) {
+                    const input = document.getElementById(`dest${i}`);
+                    const value = input.value.trim();
+                    if (value === '') {
+                        hasEmpty = true;
+                        input.style.borderColor = '#ff6b6b';
+                        input.style.backgroundColor = '#fff5f5';
+                    } else {
+                        input.style.borderColor = '#ddd';
+                        input.style.backgroundColor = 'white';
+                        newDestinations.push(value);
+                    }
+                }
+
+                if (hasEmpty) {
+                    alert('すべての行き先を入力してください！');
+                    return;
+                }
+
+                this.destinations = newDestinations;
+                this.saveDestinations();
+                this.initializeBoard();
+                this.hideSettings();
+                
+                const saveBtn = document.getElementById('saveBtn');
+                const originalText = saveBtn.textContent;
+                saveBtn.textContent = '✅ 保存完了！';
+                setTimeout(() => {
+                    saveBtn.textContent = originalText;
+                }, 1500);
+            }
+
+            updateMainDice(number) {
+                const mainDice = document.getElementById('mainDice');
+                mainDice.className = `main-dice dice-${number}`;
+            }
+
+            async rollDice() {
+                if (this.isRolling) return;
+                
+                this.isRolling = true;
+                const rollButton = document.getElementById('rollButton');
+                const diceTimeButton = document.getElementById('diceTimeButton');
+                const mainDice = document.getElementById('mainDice');
+                
+                rollButton.disabled = true;
+                diceTimeButton.disabled = true;
+                mainDice.classList.add('rolling');
+
+                const rollDuration = 1500;
+                const rollInterval = 100;
+                const rollCount = rollDuration / rollInterval;
+
+                for (let i = 0; i < rollCount; i++) {
+                    await new Promise(resolve => {
+                        setTimeout(() => {
+                            const randomNum = Math.floor(Math.random() * 6) + 1;
+                            this.updateMainDice(randomNum);
+                            resolve();
+                        }, rollInterval);
+                    });
+                }
+
+                const finalRoll = Math.floor(Math.random() * 6) + 1;
+                this.updateMainDice(finalRoll);
+                mainDice.classList.remove('rolling');
+
+                const destination = this.destinations[finalRoll - 1];
+                await this.showResult(finalRoll, destination);
+                
+                rollButton.disabled = false;
+                diceTimeButton.disabled = false;
+                this.isRolling = false;
+            }
+
+            async showResult(diceRoll, destination) {
+                const items = document.querySelectorAll('.destination-item');
+                const targetItem = items[diceRoll - 1];
+                
+                items.forEach(item => item.classList.remove('highlight'));
+                
+                targetItem.classList.add('highlight');
+                this.createSparkles(targetItem);
+
+                const result = document.getElementById('result');
+                const resultDestination = document.getElementById('resultDestination');
+                const resultMessage = document.getElementById('resultMessage');
+                
+                resultDestination.textContent = destination;
+                resultMessage.textContent = `サイコロの目: ${diceRoll} - ${this.getRandomMessage()}`;
+                
+                result.style.display = 'block';
+
+                this.addToHistory(diceRoll, destination);
+
+                setTimeout(() => {
+                    targetItem.classList.remove('highlight');
+                }, 3000);
+            }
+
+            createSparkles(element) {
+                const rect = element.getBoundingClientRect();
+                const sparkleCount = 12;
+
+                for (let i = 0; i < sparkleCount; i++) {
+                    setTimeout(() => {
+                        const sparkle = document.createElement('div');
+                        sparkle.className = 'sparkle';
+                        
+                        const x = Math.random() * rect.width;
+                        const y = Math.random() * rect.height;
+                        
+                        sparkle.style.left = x + 'px';
+                        sparkle.style.top = y + 'px';
+                        
+                        element.appendChild(sparkle);
+                        
+                        setTimeout(() => sparkle.remove(), 1000);
+                    }, i * 80);
+                }
+            }
+
+            addToHistory(diceRoll, destination) {
+                const historyItem = {
+                    roll: diceRoll,
+                    destination: destination,
+                    timestamp: new Date().toLocaleString('ja-JP', { 
+                        month: 'short',
+                        day: 'numeric',
+                        hour: '2-digit', 
+                        minute: '2-digit' 
+                    })
+                };
+
+                this.history.unshift(historyItem);
+
+                if (this.history.length > 50) {
+                    this.history = this.history.slice(0, 50);
+                }
+
+                this.saveHistory();
+                this.updateHistoryDisplay();
+            }
+
+            updateHistoryDisplay() {
+                const historyContainer = document.getElementById('history');
+                const historyList = document.getElementById('historyList');
+                
+                historyContainer.style.display = 'block';
+                historyList.innerHTML = '';
+
+                const recentHistory = this.history.slice(0, 5);
+                recentHistory.forEach(item => {
+                    const historyItem = document.createElement('div');
+                    historyItem.className = 'history-item';
+                    historyItem.innerHTML = `
+                        <span>${item.destination}</span>
+                        <span>🎲${item.roll} - ${item.timestamp}</span>
+                    `;
+                    historyList.appendChild(historyItem);
+                });
+            }
+
+            getRandomMessage() {
+                return this.messages[Math.floor(Math.random() * this.messages.length)];
+            }
+        }
+
+        window.addEventListener('DOMContentLoaded', () => {
+            new SugorokuTravelGame();
+        });
+    </script>
+</body>
+</html>
